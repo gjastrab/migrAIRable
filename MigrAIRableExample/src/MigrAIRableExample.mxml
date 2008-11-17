@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical">
+
+	<mx:Script>
+		<![CDATA[
+			import com.gregjastrab.migrairable.Foo;
+			import com.gregjastrab.migrairable.Foo2;
+			
+			import flash.net.registerClassAlias;
+			
+			private function readData(useLatest:Boolean=false):void {
+				var f:File = File.applicationStorageDirectory.resolvePath("testfoo");
+				var s:FileStream = new FileStream();
+				s.open(f, FileMode.READ);
+				if(useLatest) {
+					registerClassAlias("foo", Foo2);
+					var foo2:Foo2 = s.readObject() as Foo2;
+					trace("read object w/ foo = '" + foo2.foo + "' and bar = '" + foo2.bar + "'");
+				}
+				else {
+					registerClassAlias("foo", Foo);
+					var foo:Foo = s.readObject() as Foo;
+					trace("read object w/ foo = '" + foo.foo + "'");
+				}
+				s.close();
+			}
+			
+			private function writeData(useLatest:Boolean=false):void {
+				var f:File = File.applicationStorageDirectory.resolvePath("testfoo");
+				var s:FileStream = new FileStream();
+				s.open(f, FileMode.WRITE);
+				registerClassAlias("foo", (useLatest ? Foo2 : Foo));
+				useLatest ? 
+					s.writeObject(new Foo2("something", "else"))
+					: s.writeObject(new Foo("something"));
+				s.close();
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Button label="Write v1 Foo" click="writeData()" />
+	<mx:Button label="Read v1 Foo" click="readData()" />
+	
+	<mx:Button label="Write v2 Foo" click="writeData(true)" />
+	<mx:Button label="Read v2 Foo" click="readData(true)" />
+	
+</mx:WindowedApplication>
